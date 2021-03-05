@@ -52,7 +52,9 @@ int main (int argc, char **argv)
     //   If yes, execute it
     //   If no, print error statement: "<command_name>: Error command not found" (do include newline)
     int linecount = -1;
-    if(input == exitCheck){ //for newline at end of file
+    if(command_list_exec[0] == NULL){ //for newline at end of file
+    }
+    else if(input == exitCheck){//input == exitCheck
         cout << "\n";
         exit(0);
     }
@@ -71,6 +73,11 @@ int main (int argc, char **argv)
 
         std::string line;
         std::ofstream myfile;
+        if(command_list_exec[0] == NULL){ 
+        }
+        
+        else{
+
         if(command_list_exec[0] == historyCheck){
             if(command_list_exec[1] != NULL && command_list_exec[1] == clearCheck){
                 //std::cout << "IM GOING TO CLEAR" << std::endl;
@@ -135,6 +142,8 @@ int main (int argc, char **argv)
         }
         else cout << "Unable to open file" << endl;
 
+        
+
         //write function to take in ospathlist and command list to check in for loop if it exists, return first path found, return empty string if dont find for error
         if(command_list_exec[0][0] == '.' || command_list_exec[0][0] == '/'){//check if it exists in current directory if its . or / 
             if(std::filesystem::exists(command_list[0])){ 
@@ -178,7 +187,9 @@ int main (int argc, char **argv)
                     }
             }
         }
+        
         freeArrayOfCharArrays(command_list_exec, command_list.size()+1); //clean up arrays
+    }
     }
     return 0;
 }
