@@ -96,14 +96,12 @@ int main (int argc, char **argv)
                     int linecounter = -1;
                     while(getline(infile, line)){
                         linecounter++;
-                        specificLines[linecounter][0] = line.c_str();
+                        line >> history;
                     }
                     int checkLine;
                     checkLine = linecounter - startLine;
-                    startLine = linecounter - checkLine;
-                    for(int i = startLine; i < linecounter; i++){
-                        std::cout << startLine << ": " << specificLines[startLine][0] << std::endl;
-                        startLine++;
+                    for(int i = checkLine; i < linecounter; i++){
+                        std::cout << checkLine << ": " << specificLines[startLine][0] << std::endl;
                     }
                     //getline(i);
                 }
