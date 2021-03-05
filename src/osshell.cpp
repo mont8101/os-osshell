@@ -9,6 +9,8 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <filesystem>
+#include <sys/wait.h>
+#include <ctype.h>
 using namespace std;
 
 bool fileExecutableExists(std::string file_path);
@@ -36,11 +38,9 @@ int main (int argc, char **argv)
     printf("Welcome to OSShell! Please enter your commands ('exit' to quit).\n");
 
     std::string input;
-    std::string exit = "exit";
+    std::string exitCheck = "exit";
     std::string historyCheck = "history";
-
-    std::filesystem::exists("path");
-    
+    std::string clearCheck = "clear";
 
     // Repeat:
     //  Print prompt for user input: "osshell> " (no newline)
@@ -51,19 +51,21 @@ int main (int argc, char **argv)
     //   If yes, execute it
     //   If no, print error statement: "<command_name>: Error command not found" (do include newline)
     int linecount = -1;
-    while(input != exit){
+    while(input != exitCheck){
         std::cout << "osshell> " ;
-        std::cin >> input;
+        std::getline(std::cin, input);
         
         splitString(input, ' ', command_list); //split input into cmd list
         vectorOfStringsToArrayOfCharArrays(command_list, &command_list_exec); //converts it to char **
-        char path[64];
-        strcat(path, command_list_exec[0]); //path
-        std::cout << "path: " << path << std::endl;
-        //history.push_back(input);
+        std::filesystem::path path;
         
-        
+        //set current path to where youre at 
+        path = std::filesystem::current_path();
+        //std::cout << "path: " << path << std::endl;
+        //check if command exists
+
         std::string line;
+        const char *specificLines[128][32];
         std::ofstream myfile;
         myfile.open("src/history.txt", ios::app);
         if (myfile.is_open()){
@@ -73,26 +75,105 @@ int main (int argc, char **argv)
             myfile.close();
         }
         else cout << "Unable to open file" << endl;
-        
-        std::vector<std::string> split;
-       // splitPathCmd(input, ' ', split);
 
-        //std::cout << "input: " <<input << std::endl;
-        //std::cout << "split: " << split << std::endl;
-        if(input == historyCheck){
-            ifstream infile;
-            int linecounter = -1;
-            infile.open("src/history.txt", ios::in);
-            //for(int i = history.size() - inputNum; i < history.size; i++){}
-                //getline(i);
-            while(getline(infile, line)){
-                linecounter++;
-                std::cout << linecounter << ": " << line << std::endl;
-                //history.push_back(line);
+        if(command_list_exec[0] == historyCheck){
+            if(command_list_exec[1] != NULL && command_list_exec[1] == clearCheck){
+                std::cout << "IM GOING TO CLEAR" << std::endl;
+                remove("src/history.txt");
             }
-            infile.close();
-            //if file == 128 lines, decrement counter, copy to temp file, copy temp to history.txt except 1st line
+            else if(command_list_exec[1] != NULL){
+                bool num = true;
+                for(int i = 1; i < strlen(command_list_exec[1]); i++){
+                    if(!isdigit(command_list_exec[1][i])){
+                        num = false;
+                    }
+                }
+                if(num){
+                    //for(int i = history.size() - inputNum; i < history.size; i++){}
+                    int startLine = atoi(command_list_exec[1]);
+                    ifstream infile;
+                    infile.open("src/history.txt", ios::in);
+                    int linecounter = -1;
+                    while(getline(infile, line)){
+                        linecounter++;
+                        line >> history;
+                    }
+                    int checkLine;
+                    checkLine = linecounter - startLine;
+                    for(int i = checkLine; i < linecounter; i++){
+                        std::cout << checkLine << ": " << specificLines[startLine][0] << std::endl;
+                    }
+                    //getline(i);
+                }
+                else{
+                    std::cout << "That is not a number" << std::endl;
+                }
+            }
+            else {
+                ifstream infile;
+                int linecounter = -1;
+                infile.open("src/history.txt", ios::in);
+                while(getline(infile, line)){
+                    linecounter++;
+                    std::cout << linecounter << ": " << line << std::endl;
+                //history.push_back(line);
+                }
+                infile.close();
+            }
+                    //if file == 128 lines, decrement counter, copy to temp file, copy temp to history.txt except 1st line
         }
+
+
+        //write function to take in ospathlist and command list to check in for loop if it exists, return first path found, return empty string if dont find for error
+        else if(command_list_exec[0][0] == '.' || command_list_exec[0][0] == '/'){
+            if(std::filesystem::exists(command_list[0])){ //check if it exists in current directory if its . or / 
+                int pid = fork();
+                if(pid == 0){
+                    execv(command_list_exec[0], command_list_exec);
+                    exit(1);
+                }
+                else{
+                    int status;
+                    waitpid(pid, &status, 0);
+                }
+            }        
+            else {
+                if(input != exitCheck){
+                   std::cout << "error, command not found" << endl;
+                }
+            }
+        }
+        else{
+            bool found = false;
+            for(int i = 0; i < os_path_list.size(); i++){
+                std::string pathCheck = os_path_list[i] + '/' + command_list_exec[0];
+                if(std::filesystem::exists(pathCheck)){
+                    found = true;
+                    int pid = fork();
+                    if(pid == 0){
+                        execv(pathCheck.c_str(), command_list_exec);
+                        exit(1);
+                    }
+                    else{
+                        int status;
+                        waitpid(pid, &status, 0);
+                    }
+                    i = os_path_list.size();
+                }   
+            }
+            if(found == false){
+                if(input != exitCheck){
+                        std::cout << "error, command not found" << endl;
+                    }
+            }
+        }
+        
+        
+        //freeArrayOfCharArrays(command_list_exec, command_list.size() + 1);
+        //run if child
+        //if parent wait
+        
+        
 
         freeArrayOfCharArrays(command_list_exec, command_list.size()+1);
 
