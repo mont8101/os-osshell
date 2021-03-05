@@ -28,6 +28,7 @@ int main (int argc, char **argv)
 
     // Create list to store history
     std::vector<std::string> history;
+    char **historyString;
 
     // Create variables for storing command user types
     std::string user_command;               // to store command user types in
@@ -78,7 +79,7 @@ int main (int argc, char **argv)
 
         if(command_list_exec[0] == historyCheck){
             if(command_list_exec[1] != NULL && command_list_exec[1] == clearCheck){
-                std::cout << "IM GOING TO CLEAR" << std::endl;
+                //std::cout << "IM GOING TO CLEAR" << std::endl;
                 remove("src/history.txt");
             }
             else if(command_list_exec[1] != NULL){
@@ -96,12 +97,14 @@ int main (int argc, char **argv)
                     int linecounter = -1;
                     while(getline(infile, line)){
                         linecounter++;
-                        line >> history;
+                        history.push_back(line);
                     }
+                    vectorOfStringsToArrayOfCharArrays(history, &historyString);
                     int checkLine;
                     checkLine = linecounter - startLine;
-                    for(int i = checkLine; i < linecounter; i++){
-                        std::cout << checkLine << ": " << specificLines[startLine][0] << std::endl;
+                    for(int i = linecounter - startLine; i < linecounter; i++){
+                        std::cout << i << ": " << historyString[i] << std::endl;
+                        checkLine++;
                     }
                     //getline(i);
                 }
