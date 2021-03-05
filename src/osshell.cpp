@@ -52,6 +52,10 @@ int main (int argc, char **argv)
     //   If yes, execute it
     //   If no, print error statement: "<command_name>: Error command not found" (do include newline)
     int linecount = -1;
+    if(input == exitCheck){ //for newline at end of file
+        cout << "\n";
+        exit(0);
+    }
     while(input != exitCheck){
         std::cout << "osshell> " ;
         std::getline(std::cin, input);
@@ -66,17 +70,7 @@ int main (int argc, char **argv)
         //check if command exists
 
         std::string line;
-        const char *specificLines[128][32];
         std::ofstream myfile;
-        myfile.open("src/history.txt", ios::app);
-        if (myfile.is_open()){ //push input to history file
-            myfile << input;
-            myfile << endl;
-            linecount++;
-            myfile.close();
-        }
-        else cout << "Unable to open file" << endl;
-
         if(command_list_exec[0] == historyCheck){
             if(command_list_exec[1] != NULL && command_list_exec[1] == clearCheck){
                 //std::cout << "IM GOING TO CLEAR" << std::endl;
@@ -102,8 +96,9 @@ int main (int argc, char **argv)
                     int checkLine;
                     checkLine = linecounter - startLine;
                     for(int i = linecounter - startLine; i < linecounter; i++){
-                        std::cout << "   " << i << ": " << historyString[i] << std::endl; //print out lines from given number to end
+                        //std::cout << "  " << i << ": " << historyString[i] << std::endl; //rint out lines from given number to end
                         checkLine++;
+                        printf("%3d: %s\n", checkLine, historyString[i]);//changed to printf for output tests
                     }
                     //getline(i);
                 }
@@ -117,15 +112,31 @@ int main (int argc, char **argv)
                 infile.open("src/history.txt", ios::in);
                 while(getline(infile, line)){
                     linecounter++;
-                    std::cout << "   " << linecounter << ": " << line << std::endl; //print out all lines in history with line #s
+                    //std::cout << "  " << linecounter << ": " << line << std::endl; //print out all lines in history with line #s
+                    printf("%3d: %s\n", linecounter, line.c_str()); //changed to printf for output tests
                 //history.push_back(line);
                 }
                 infile.close();
             }
         }
 
+        
+        myfile.open("src/history.txt", ios::app);
+        if (myfile.is_open()){ //push input to history file
+            if(command_list_exec[0] == historyCheck && command_list_exec[1] != NULL && command_list_exec[1] == clearCheck){ //get rid of history clear in output test
+
+            }
+            else{
+                myfile << input;
+                myfile << endl;
+            }  
+            linecount++;
+            myfile.close();
+        }
+        else cout << "Unable to open file" << endl;
+
         //write function to take in ospathlist and command list to check in for loop if it exists, return first path found, return empty string if dont find for error
-        else if(command_list_exec[0][0] == '.' || command_list_exec[0][0] == '/'){//check if it exists in current directory if its . or / 
+        if(command_list_exec[0][0] == '.' || command_list_exec[0][0] == '/'){//check if it exists in current directory if its . or / 
             if(std::filesystem::exists(command_list[0])){ 
                 int pid = fork();
                 if(pid == 0){ //if child
@@ -138,8 +149,8 @@ int main (int argc, char **argv)
                 }
             }        
             else {
-                if(input != exitCheck){ //command not found error statement
-                   std::cout << "badexe: Error command not found" << endl;
+                if(input != exitCheck && command_list_exec[0] != historyCheck ){ //command not found error statement
+                   std::cout << input <<": Error command not found" << endl;
                 }
             }
         }
@@ -162,17 +173,13 @@ int main (int argc, char **argv)
                 }   
             }
             if(found == false){ //if it wasnt found print error
-                if(input != exitCheck){
-                        std::cout << "badexe: Error command not found" << endl;
+                if(input != exitCheck && command_list_exec[0] != historyCheck ){
+                        std::cout << input << ": Error command not found" << endl;
                     }
             }
         }
         freeArrayOfCharArrays(command_list_exec, command_list.size()+1); //clean up arrays
-
     }
-
-
-
     return 0;
 }
 
