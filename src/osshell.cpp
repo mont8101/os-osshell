@@ -93,7 +93,7 @@ int main (int argc, char **argv)
                     int startLine = atoi(command_list_exec[1]);
                     ifstream infile;
                     infile.open("src/history.txt", ios::in);
-                    int linecounter = -1;
+                    int linecounter = 0;
                     while(getline(infile, line)){
                         linecounter++;
                         history.push_back(line);//read all lines, store
@@ -113,7 +113,7 @@ int main (int argc, char **argv)
             }
             else {
                 ifstream infile;
-                int linecounter = -1;
+                int linecounter = 0;
                 infile.open("src/history.txt", ios::in);
                 while(getline(infile, line)){
                     linecounter++;
